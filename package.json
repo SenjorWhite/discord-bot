@@ -1,0 +1,25 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "Practice of creating a discord bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SenjorWhite/discord-bot.git"
+  },
+  "author": "Senjor Pai",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SenjorWhite/discord-bot/issues"
+  },
+  "homepage": "https://github.com/SenjorWhite/discord-bot#readme",
+  "dependencies": {
+    "discord.js": "^13.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.11.0"
+  }
+}
