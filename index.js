@@ -30,20 +30,32 @@ async function handleEvent(message) {
 		const replies = event.replies;
 		let reply;
 
-		if (Array.isArray(replies)) {
-			reply = _.sample(replies);
-		} else if (!Array.isArray(replies)) {
-			if (event.replies[message.author]) {
-				reply = _.sample(event.replies[message.author]);
-			} else if (event.replies.common) {
-				reply = _.sample(event.replies.common);
+		if (event.guild || event.channel) {
+			if (!event.guild.includes(message.guildId) && !event.channel.includes(message.channelId)) {
+				return;
+			}
+		}
+
+		if (event.gacha) {
+			const gachaMap = initializeGacha(event);
+			reply = _.sample(event.pool[_.sample(gachaMap)].items);
+			// console.log(gachaMap);
+		} else if (!event.gacha) {
+			if (Array.isArray(replies)) {
+				reply = _.sample(replies);
+			} else if (!Array.isArray(replies)) {
+				if (event.replies[message.author]) {
+					reply = _.sample(event.replies[message.author]);
+				} else if (event.replies.common) {
+					reply = _.sample(event.replies.common);
+				} else {
+					console.error('Format error!');
+					return;
+				}
 			} else {
 				console.error('Format error!');
 				return;
 			}
-		} else {
-			console.error('Format error!');
-			return;
 		}
 
 		if (event.tag) {
@@ -51,11 +63,30 @@ async function handleEvent(message) {
 		}
 
 		if (event['@']) {
-			message.reply(reply);
+			await message.reply(reply);
 		} else {
-			message.channel.send(reply);
+			await message.channel.send(reply);
 		}
 
 		console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
 	}
+}
+
+function initializeGacha(event) {
+	const gachaMap = [];
+	let index = 0;
+	for (let i = 0; i < event.pool.length; i++) {
+		const element = event.pool[i];
+		if (element.rarity > 0) {
+			for (let j = 0; j < element.rarity; j++) {
+				gachaMap[index + j] = i;
+			}
+			index += element.rarity;
+		} else if (element.rarity === -1) {
+			for (let j = index; j < 1000; j++) {
+				gachaMap[j] = i;
+			}
+		}
+	}
+	return gachaMap;
 }

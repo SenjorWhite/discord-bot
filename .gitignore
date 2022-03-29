@@ -106,3 +106,6 @@ dist
 # Config file
 config.json
 replies.json
+
+#vscode settings
+.vscode/
