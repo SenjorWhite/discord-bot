@@ -29,11 +29,26 @@ async function handleEvent(message) {
 		const event = events[triggers[message.content]];
 		const replies = event.replies;
 		let reply;
+		let authorized = false;
 
-		if (event.guild || event.channel) {
-			if (!event.guild.includes(message.guildId) && !event.channel.includes(message.channelId)) {
-				return;
+		if (event.guild) {
+			if (event.guild.includes(message.guildId)) {
+				authorized = true;
 			}
+		}
+
+		if (event.channel) {
+			if (event.channel.includes(message.channelId)) {
+				authorized = true;
+			}
+		}
+
+		if (!event.guild && !event.channel) {
+			authorized = true;
+		}
+
+		if (!authorized) {
+			return;
 		}
 
 		if (event.gacha) {
