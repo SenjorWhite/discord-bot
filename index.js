@@ -1,6 +1,7 @@
 const { Client, Intents } = require('discord.js');
 const { channelId, guildId, token } = require('./config.json');
 const { commands, triggers, events } = require('./replies.json');
+const fs = require('fs');
 const _ = require('lodash');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
@@ -53,6 +54,26 @@ async function handleEvent(message) {
 
 		if (event.gacha) {
 			const gachaMap = initializeGacha(event);
+
+			if (event['daily-limit']) {
+				const filePath = `\\db\\${triggers[message.content]}.json`;
+				if (!event.limitList) {
+					const fileExists = fs.existsSync(filePath);
+					if (fileExists) {
+						event.limitList = JSON.readFileSync(fs.readFileSync(filePath));
+						fs.writeFileSync(`\\db\\${triggers[message.content]}.json`, JSON.stringify({}));
+					}
+
+					event.limitList = {};
+				}
+
+				if (event.limitList[message.clientId]) {
+					// over limit
+				} else if (!event.limitList[message.clientId]) {
+					// add record to db
+				}
+			}
+
 			reply = _.sample(event.pool[_.sample(gachaMap)].items);
 			// console.log(gachaMap);
 		} else if (!event.gacha) {
