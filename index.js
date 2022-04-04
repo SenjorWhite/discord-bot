@@ -1,6 +1,6 @@
 const { Client, Intents } = require('discord.js');
 const { channelId, guildId, token } = require('./config.json');
-const { commands, triggers, events } = require('./replies.json');
+const { commands, exception, triggers, events } = require('./replies.json');
 const process = require('process');
 const fs = require('fs');
 const _ = require('lodash');
@@ -106,6 +106,10 @@ async function handleEvent(message) {
 
 		if (event.tag) {
 			reply = `${event.tag} ${reply}`;
+		}
+
+		if (!reply || reply === '') {
+			reply = exception;
 		}
 
 		if (event['@']) {
