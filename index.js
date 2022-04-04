@@ -1,7 +1,11 @@
 const { Client, Intents } = require('discord.js');
 const { channelId, guildId, token } = require('./config.json');
 const { commands, triggers, events } = require('./replies.json');
+const process = require('process');
+const fs = require('fs');
 const _ = require('lodash');
+
+let eventRecords;
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
@@ -27,7 +31,9 @@ async function handleEvent(message) {
 		}
 	} else if (triggers[message.content]) {
 		const event = events[triggers[message.content]];
+		const eventName = triggers[message.content];
 		const replies = event.replies;
+		let available = true;
 		let reply;
 		let authorized = false;
 
@@ -51,25 +57,50 @@ async function handleEvent(message) {
 			return;
 		}
 
-		if (event.gacha) {
-			const gachaMap = initializeGacha(event);
-			reply = _.sample(event.pool[_.sample(gachaMap)].items);
-			// console.log(gachaMap);
-		} else if (!event.gacha) {
-			if (Array.isArray(replies)) {
-				reply = _.sample(replies);
-			} else if (!Array.isArray(replies)) {
-				if (event.replies[message.author]) {
-					reply = _.sample(event.replies[message.author]);
-				} else if (event.replies.common) {
-					reply = _.sample(event.replies.common);
+		if (event['daily-limit']) {
+			const resetTime = new Date();
+			resetTime.setHours(event['reset-time'], 0, 0, 0);
+
+			const lastRecord = getLastEventRecord(eventName, message.author);
+			console.log(lastRecord);
+
+			if (lastRecord !== null && lastRecord !== undefined) {
+				if (lastRecord < resetTime && Date.now() < resetTime) {
+					available = false;
+				} else if (lastRecord > resetTime) {
+					available = false;
+				}
+			}
+
+			if (!available) {
+				reply = _.sample(event['limit-message']);
+			}
+		}
+
+		if ((event['daily-limit'] && available) || !event['daily-limit']) {
+			if (event['daily-limit']) {
+				setLastEventRecord(eventName, message.author, Date.now());
+			}
+
+			if (event.gacha) {
+				const gachaMap = initializeGacha(event);
+				reply = _.sample(event.pool[_.sample(gachaMap)].items);
+			} else if (!event.gacha) {
+				if (Array.isArray(replies)) {
+					reply = _.sample(replies);
+				} else if (!Array.isArray(replies)) {
+					if (event.replies[message.author]) {
+						reply = _.sample(event.replies[message.author]);
+					} else if (event.replies.common) {
+						reply = _.sample(event.replies.common);
+					} else {
+						console.error('Format error!');
+						return;
+					}
 				} else {
 					console.error('Format error!');
 					return;
 				}
-			} else {
-				console.error('Format error!');
-				return;
 			}
 		}
 
@@ -85,6 +116,36 @@ async function handleEvent(message) {
 
 		console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
 	}
+}
+
+function getLastEventRecord(eventName, userId) {
+	let event = null;
+
+	if (!eventRecords) {
+		eventRecords = {};
+		if (fs.existsSync('./event-records.json')) {
+			eventRecords = JSON.parse(fs.readFileSync('./event-records.json'));
+		}
+	}
+
+	if (eventRecords[eventName]) {
+		if (eventRecords[eventName][userId]) {
+			event = eventRecords[eventName][userId];
+		}
+	}
+
+	return event;
+}
+
+function setLastEventRecord(eventName, userId, record) {
+	if (eventRecords[eventName]) {
+		eventRecords[eventName][userId] = record;
+	} else if (!eventRecords[eventName]) {
+		eventRecords[eventName] = {};
+		eventRecords[eventName][userId] = record;
+	}
+
+	return eventRecords[eventName][userId];
 }
 
 function initializeGacha(event) {
@@ -104,4 +165,16 @@ function initializeGacha(event) {
 		}
 	}
 	return gachaMap;
+}
+
+process.on('exit', exitHandler.bind());
+
+process.on('SIGINT', exitHandler.bind());
+
+function exitHandler() {
+	if (eventRecords) {
+		const eventData = JSON.stringify(eventRecords);
+		fs.writeFileSync('./event-records.json', eventData);
+	}
+	process.exit();
 }

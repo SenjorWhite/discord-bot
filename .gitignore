@@ -106,6 +106,7 @@ dist
 # Config file
 config.json
 replies.json
+event-records.json
 
-#vscode settings
+# vscode settings
 .vscode/
