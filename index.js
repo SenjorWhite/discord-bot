@@ -114,6 +114,10 @@ async function handleEvent(message) {
 			await message.channel.send(reply);
 		}
 
+		if (event.files) {
+			await message.channel.send({ files: event.files });
+		}
+
 		console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
 	}
 }

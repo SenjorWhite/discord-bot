@@ -104,6 +104,7 @@ dist
 .tern-port
 
 # Config file
+misc/
 config.json
 replies.json
 event-records.json
