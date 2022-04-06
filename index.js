@@ -138,9 +138,17 @@ async function handleEvent(message) {
 		}
 
 		if (event['@']) {
-			await message.reply({ content: reply, components: [row ? row : null] });
+			if (row) {
+				await message.reply({ content: reply, components: [row] });
+			} else {
+				await message.reply(reply);
+			}
 		} else {
-			await message.channel.send({ content: reply, components: [row ? row : null] });
+			if (row) {
+				await message.channel.send({ content: reply, components: [row] });
+			} else {
+				await message.channel.send(reply);
+			}
 		}
 
 		if (event.files) {
