@@ -33,6 +33,7 @@ async function handleEvent(message) {
 		const event = events[triggers[message.content]];
 		const eventName = triggers[message.content];
 		const replies = event.replies;
+		let sentMessage;
 		let available = true;
 		let reply;
 		let authorized = false;
@@ -89,7 +90,7 @@ async function handleEvent(message) {
 					row.addComponents(new MessageButton().setCustomId(name).setLabel(name).setStyle('PRIMARY'));
 				});
 
-				const collector = message.channel.createMessageComponentCollector({ time: 15000 });
+				const collector = message.channel.createMessageComponentCollector({ time: event['available-time'] });
 
 				collector.on('collect', async (i) => {
 					if (threads[i.customId]) {
@@ -139,20 +140,30 @@ async function handleEvent(message) {
 
 		if (event['@']) {
 			if (row) {
-				await message.reply({ content: reply, components: [row] });
+				sentMessage = await message.reply({ content: reply, components: [row] });
 			} else {
-				await message.reply(reply);
+				sentMessage = await message.reply(reply);
 			}
 		} else {
 			if (row) {
-				await message.channel.send({ content: reply, components: [row] });
+				sentMessage = await message.channel.send({ content: reply, components: [row] });
 			} else {
-				await message.channel.send(reply);
+				sentMessage = await message.channel.send(reply);
 			}
 		}
 
 		if (event.files) {
 			await message.channel.send({ files: event.files });
+		}
+
+		if (event['invite-to-thread']) {
+			row.components.forEach((component) => {
+				component.setDisabled(true);
+			});
+
+			setTimeout(() => {
+				sentMessage.edit({ content: event['invite-expired-msg'], components: [row] });
+			}, event['available-time']);
 		}
 
 		console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
