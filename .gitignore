@@ -104,6 +104,7 @@ dist
 .tern-port
 
 # Config file
+var/
 misc/
 config.json
 replies.json

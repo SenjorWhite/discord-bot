@@ -1,4 +1,4 @@
-const { Client, Intents } = require('discord.js');
+const { Client, Intents, MessageActionRow, MessageButton } = require('discord.js');
 const { channelId, guildId, token } = require('./config.json');
 const { commands, exception, triggers, events } = require('./replies.json');
 const process = require('process');
@@ -36,6 +36,7 @@ async function handleEvent(message) {
 		let available = true;
 		let reply;
 		let authorized = false;
+		let row;
 
 		if (event.guild) {
 			if (event.guild.includes(message.guildId)) {
@@ -77,6 +78,30 @@ async function handleEvent(message) {
 			}
 		}
 
+		if (event['invite-to-thread']) {
+			const threads = event['invite-to-thread'];
+			const threadNames = Object.keys(threads);
+
+			if (threadNames.length > 0) {
+				row = new MessageActionRow();
+
+				threadNames.forEach((name) => {
+					row.addComponents(new MessageButton().setCustomId(name).setLabel(name).setStyle('PRIMARY'));
+				});
+
+				const collector = message.channel.createMessageComponentCollector({ time: 15000 });
+
+				collector.on('collect', async (i) => {
+					if (threads[i.customId]) {
+						const threadId = threads[i.customId];
+						await i.deferUpdate();
+						const thread = await client.channels.fetch(threadId);
+						thread.members.add(i.user.id);
+					}
+				});
+			}
+		}
+
 		if ((event['daily-limit'] && available) || !event['daily-limit']) {
 			if (event['daily-limit']) {
 				setLastEventRecord(eventName, message.author, Date.now());
@@ -113,9 +138,9 @@ async function handleEvent(message) {
 		}
 
 		if (event['@']) {
-			await message.reply(reply);
+			await message.reply({ content: reply, components: [row ? row : null] });
 		} else {
-			await message.channel.send(reply);
+			await message.channel.send({ content: reply, components: [row ? row : null] });
 		}
 
 		if (event.files) {
