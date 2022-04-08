@@ -69,9 +69,9 @@ async function handleEvent(message) {
 				const lastTime = new Date(lastRecord);
 				const now = new Date();
 				console.log(`${message.author} lastTime: ${lastTime}, resetTime: ${resetTime}, now: ${now}`);
-				if (lastTime < resetTime && new Date() < resetTime) {
+				if (lastTime.getTime() < resetTime.getTime() && Date.now() < resetTime.getTime()) {
 					available = false;
-				} else if (lastTime > resetTime) {
+				} else if (lastTime.getTime() > resetTime.getTime()) {
 					available = false;
 				}
 			}
