@@ -64,10 +64,12 @@ async function handleEvent(message) {
 			resetTime.setHours(event['reset-time'], 0, 0, 0);
 
 			const lastRecord = getLastEventRecord(eventName, message.author);
-			console.log(lastRecord);
 
 			if (lastRecord !== null && lastRecord !== undefined) {
-				if (lastRecord < resetTime && Date.now() < resetTime) {
+				const lastTime = new Date(lastRecord);
+				const now = new Date();
+				console.log(`${message.author} lastTime: ${lastTime}, resetTime: ${resetTime}, now: ${now}`);
+				if (lastTime < resetTime && new Date() < resetTime) {
 					available = false;
 				} else if (lastRecord > resetTime) {
 					available = false;
