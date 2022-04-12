@@ -60,18 +60,15 @@ async function handleEvent(message) {
 		}
 
 		if (event['daily-limit']) {
-			const resetTime = new Date();
-			resetTime.setHours(event['reset-time'], 0, 0, 0);
-
 			const lastRecord = getLastEventRecord(eventName, message.author);
 
 			if (lastRecord !== null && lastRecord !== undefined) {
 				const lastTime = new Date(lastRecord);
+				const eventResetTime = getEventResetTime(lastTime, event['reset-time']);
+				eventResetTime.setHours(event['reset-time'], 0, 0, 0);
 				const now = new Date();
-				console.log(`${message.author} lastTime: ${lastTime}, resetTime: ${resetTime}, now: ${now}`);
-				if (lastTime.getTime() < resetTime.getTime() && Date.now() < resetTime.getTime()) {
-					available = false;
-				} else if (lastTime.getTime() > resetTime.getTime()) {
+				console.log(`${message.author} lastTime: ${lastTime}, resetTime: ${eventResetTime}, now: ${now}`);
+				if (Date.now() < eventResetTime.getTime()) {
 					available = false;
 				}
 			}
@@ -170,6 +167,17 @@ async function handleEvent(message) {
 
 		console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
 	}
+}
+
+function getEventResetTime(eventTime, resetTime) {
+	const eventResetTime = new Date();
+	eventResetTime.setHours(resetTime, 0, 0, 0);
+
+	if (eventTime > eventResetTime.getTime()) {
+		eventResetTime.setDate(eventResetTime.getDate() + 1);
+	}
+
+	return eventResetTime;
 }
 
 function getLastEventRecord(eventName, userId) {
