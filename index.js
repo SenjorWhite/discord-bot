@@ -170,7 +170,7 @@ async function handleEvent(message) {
 }
 
 function getEventResetTime(eventTime, resetTime) {
-	const eventResetTime = new Date();
+	const eventResetTime = new Date(eventTime);
 	eventResetTime.setHours(resetTime, 0, 0, 0);
 
 	if (eventTime > eventResetTime.getTime()) {
