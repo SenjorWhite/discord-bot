@@ -1,4 +1,4 @@
-import { Client, Intents, MessageActionRow, MessageButton, ThreadChannel } from 'discord.js';
+import { Client, Intents, Message, MessageActionRow, MessageButton, ThreadChannel } from 'discord.js';
 import { channelId, guildId, token } from './config.json';
 import { commands, exception, triggers, events } from './replies.json';
 import * as process from 'process';
@@ -6,6 +6,22 @@ import * as fs from 'fs';
 import * as _ from 'lodash';
 
 let eventRecords;
+
+type Event = {
+	'@'?: boolean;
+	guild?: string[];
+	channel?: string[];
+	gacha?: boolean;
+	pool?: { rarity: number; items: string[] }[];
+	'invite-expired-msg'?: string;
+	'available-time'?: number;
+	replies?: string[] | { common: string[] };
+	'invite-to-thread'?: object;
+	files?: string[];
+	'daily=limit'?: boolean;
+	'reset-time'?: number;
+	tag?: string;
+};
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
@@ -22,7 +38,7 @@ client.on('messageCreate', async (message) => {
 
 client.login(token);
 
-async function handleEvent(message) {
+async function handleEvent(message: Message) {
 	if (commands[message.content]) {
 		if (commands[message.content] === 'ListTriggers') {
 			const reply = Object.keys(triggers);
@@ -30,10 +46,10 @@ async function handleEvent(message) {
 			console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
 		}
 	} else if (triggers[message.content]) {
-		const event = events[triggers[message.content]];
+		const event = events[triggers[message.content]] as Event;
 		const eventName = triggers[message.content];
 		const replies = event.replies;
-		let sentMessage;
+		let sentMessage: Message;
 		let available = true;
 		let reply;
 		let authorized = false;
@@ -114,9 +130,9 @@ async function handleEvent(message) {
 				if (Array.isArray(replies)) {
 					reply = _.sample(replies);
 				} else if (!Array.isArray(replies)) {
-					if (event.replies[message.author]) {
-						reply = _.sample(event.replies[message.author]);
-					} else if (event.replies.common) {
+					if (event.replies[message.author.toString()]) {
+						reply = _.sample(event.replies[message.author.toString()]);
+					} else if (!_.isArray(event.replies)) {
 						reply = _.sample(event.replies.common);
 					} else {
 						console.error('Format error!');
