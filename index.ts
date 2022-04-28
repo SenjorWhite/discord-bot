@@ -5,7 +5,7 @@ import * as process from 'process';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
-import { DiscordEvent } from './components/eventManager';
+import { BotEvent } from './components/eventManager';
 
 let eventRecords;
 
@@ -32,7 +32,7 @@ async function handleEvent(message: Message) {
 			console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
 		}
 	} else if (triggers[message.content]) {
-		const event = events[triggers[message.content]] as DiscordEvent;
+		const event = events[triggers[message.content]] as BotEvent;
 		const eventName: string = triggers[message.content];
 		const replies = event.replies;
 		let sentMessage: Message;

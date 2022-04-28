@@ -1,4 +1,4 @@
-export type DiscordEvent = {
+export type BotEvent = {
 	guild?: string[];
 	channel?: string[];
 	gacha?: boolean;
@@ -16,8 +16,12 @@ export type DiscordEvent = {
 
 export class EventManager {
 	triggers: { [keys: string]: string } = {};
-	events: { [keys: string]: DiscordEvent } = {};
-	constructor(events: { [keys: string]: DiscordEvent }) {
+	events: { [keys: string]: BotEvent } = {};
+	constructor(events: { [keys: string]: BotEvent }) {
 		this.events = events;
+	}
+
+	public getEvent(key: string): BotEvent {
+		return this.events[key];
 	}
 }
