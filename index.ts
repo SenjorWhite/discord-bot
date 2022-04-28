@@ -5,23 +5,9 @@ import * as process from 'process';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
-let eventRecords;
+import { DiscordEvent } from './components/eventManager';
 
-type Event = {
-	'@'?: boolean;
-	guild?: string[];
-	channel?: string[];
-	gacha?: boolean;
-	pool?: { rarity: number; items: string[] }[];
-	'invite-expired-msg'?: string;
-	'available-time'?: number;
-	replies?: string[] | { common: string[] };
-	'invite-to-thread'?: object;
-	files?: string[];
-	'daily=limit'?: boolean;
-	'reset-time'?: number;
-	tag?: string;
-};
+let eventRecords;
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
@@ -46,8 +32,8 @@ async function handleEvent(message: Message) {
 			console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
 		}
 	} else if (triggers[message.content]) {
-		const event = events[triggers[message.content]] as Event;
-		const eventName = triggers[message.content];
+		const event = events[triggers[message.content]] as DiscordEvent;
+		const eventName: string = triggers[message.content];
 		const replies = event.replies;
 		let sentMessage: Message;
 		let available = true;
