@@ -5,7 +5,7 @@ import * as process from 'process';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
-import { BotEvent } from './components/eventManager';
+import { BotEvent } from './components/EventManager';
 
 let eventRecords;
 
