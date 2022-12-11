@@ -16,10 +16,7 @@ export type BotEvent = {
 
 export class EventManager {
 	triggers: { [keys: string]: string } = {};
-	events: { [keys: string]: BotEvent } = {};
-	constructor(events: { [keys: string]: BotEvent }) {
-		this.events = events;
-	}
+	constructor(private events: { [keys: string]: BotEvent }) {}
 
 	public getEvent(key: string): BotEvent {
 		return this.events[key];
