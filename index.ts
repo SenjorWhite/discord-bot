@@ -1,9 +1,11 @@
-const { Client, Intents, MessageActionRow, MessageButton } = require('discord.js');
-const { channelId, guildId, token } = require('./config.json');
-const { commands, exception, triggers, events } = require('./replies.json');
-const process = require('process');
-const fs = require('fs');
-const _ = require('lodash');
+import { Client, Intents, Message, MessageActionRow, MessageButton, ThreadChannel } from 'discord.js';
+import { channelId, guildId, token } from './config.json';
+import { commands, exception, triggers, events } from './replies.json';
+import * as process from 'process';
+import * as fs from 'fs';
+import * as _ from 'lodash';
+
+import { BotEvent } from './components/eventManager';
 
 let eventRecords;
 
@@ -22,7 +24,7 @@ client.on('messageCreate', async (message) => {
 
 client.login(token);
 
-async function handleEvent(message) {
+async function handleEvent(message: Message) {
 	if (commands[message.content]) {
 		if (commands[message.content] === 'ListTriggers') {
 			const reply = Object.keys(triggers);
@@ -30,10 +32,10 @@ async function handleEvent(message) {
 			console.log(`${message.author} / ${message.author.username} : ${message.content} => ${reply}`);
 		}
 	} else if (triggers[message.content]) {
-		const event = events[triggers[message.content]];
-		const eventName = triggers[message.content];
+		const event = events[triggers[message.content]] as BotEvent;
+		const eventName: string = triggers[message.content];
 		const replies = event.replies;
-		let sentMessage;
+		let sentMessage: Message;
 		let available = true;
 		let reply;
 		let authorized = false;
@@ -95,7 +97,7 @@ async function handleEvent(message) {
 					if (threads[i.customId]) {
 						const threadId = threads[i.customId];
 						await i.deferUpdate();
-						const thread = await client.channels.fetch(threadId);
+						const thread = (await client.channels.fetch(threadId)) as ThreadChannel;
 						thread.members.add(i.user.id);
 					}
 				});
@@ -114,9 +116,9 @@ async function handleEvent(message) {
 				if (Array.isArray(replies)) {
 					reply = _.sample(replies);
 				} else if (!Array.isArray(replies)) {
-					if (event.replies[message.author]) {
-						reply = _.sample(event.replies[message.author]);
-					} else if (event.replies.common) {
+					if (event.replies[message.author.toString()]) {
+						reply = _.sample(event.replies[message.author.toString()]);
+					} else if (!_.isArray(event.replies)) {
 						reply = _.sample(event.replies.common);
 					} else {
 						console.error('Format error!');
@@ -186,7 +188,7 @@ function getLastEventRecord(eventName, userId) {
 	if (!eventRecords) {
 		eventRecords = {};
 		if (fs.existsSync('./event-records.json')) {
-			eventRecords = JSON.parse(fs.readFileSync('./event-records.json'));
+			eventRecords = JSON.parse(fs.readFileSync('./event-records.json').toString());
 		}
 	}
 
@@ -229,9 +231,9 @@ function initializeGacha(event) {
 	return gachaMap;
 }
 
-process.on('exit', exitHandler.bind());
+process.on('exit', exitHandler);
 
-process.on('SIGINT', exitHandler.bind());
+process.on('SIGINT', exitHandler);
 
 function exitHandler() {
 	if (eventRecords) {
